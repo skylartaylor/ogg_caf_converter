@@ -89,16 +89,20 @@ class OggPageResult {
 class OpusData {
   OpusData(
       {required this.audioData,
-       required this.trailingData,
-       required this.frameSize,
-       required this.totalSamples,
-       required this.finalGranulePosition});
+      required this.trailingData,
+      required this.packetSampleCounts,
+      required this.frameSize,
+      required this.totalSamples,
+      required this.finalGranulePosition});
 
   /// List of audio data bytes.
   final Uint8List audioData;
 
   /// List of trailing data bytes.
   final Uint8List trailingData;
+
+  /// The number of decoded PCM samples contributed by each packet.
+  final List<int> packetSampleCounts;
 
   /// Size of the audio frame.
   final int frameSize;
@@ -253,8 +257,8 @@ class OggReader {
   /// Throws an exception if an error occurs while reading the Opus data.
   Future<OpusData> readOpusData() async {
     final List<int> audioData = <int>[];
-    int frameSize = 0;
     final List<int> trailingData = <int>[];
+    final List<int> packetSampleCounts = <int>[];
     int totalSamples = 0;
     int finalGranulePosition = 0;
 
@@ -281,7 +285,7 @@ class OggReader {
         trailingData.add(segment.length);
         audioData.addAll(segment);
         final int packetSampleCount = getOpusPacketSampleCount(segment);
-        frameSize = frameSize == 0 ? packetSampleCount : frameSize;
+        packetSampleCounts.add(packetSampleCount);
         totalSamples += packetSampleCount;
       }
 
@@ -292,14 +296,21 @@ class OggReader {
       }
     }
 
-    if (frameSize == 0 && trailingData.isNotEmpty) {
-      frameSize = getOpusPacketSampleCount(Uint8List.fromList(
-          audioData.sublist(0, trailingData.first)));
+    int frameSize = 0;
+    if (packetSampleCounts.isNotEmpty) {
+      frameSize = packetSampleCounts.first;
+      for (final int packetSampleCount in packetSampleCounts.skip(1)) {
+        if (packetSampleCount != frameSize) {
+          frameSize = 0;
+          break;
+        }
+      }
     }
 
     return OpusData(
         audioData: Uint8List.fromList(audioData),
         trailingData: Uint8List.fromList(trailingData),
+        packetSampleCounts: packetSampleCounts,
         frameSize: frameSize,
         totalSamples: totalSamples,
         finalGranulePosition: finalGranulePosition);
