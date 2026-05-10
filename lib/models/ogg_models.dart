@@ -89,10 +89,10 @@ class OggPageResult {
 class OpusData {
   OpusData(
       {required this.audioData,
-       required this.trailingData,
-       required this.frameSize,
-       required this.totalSamples,
-       required this.finalGranulePosition});
+      required this.trailingData,
+      required this.frameSize,
+      required this.totalSamples,
+      required this.finalGranulePosition});
 
   /// List of audio data bytes.
   final Uint8List audioData;
@@ -293,8 +293,8 @@ class OggReader {
     }
 
     if (frameSize == 0 && trailingData.isNotEmpty) {
-      frameSize = getOpusPacketSampleCount(Uint8List.fromList(
-          audioData.sublist(0, trailingData.first)));
+      frameSize = getOpusPacketSampleCount(
+          Uint8List.fromList(audioData.sublist(0, trailingData.first)));
     }
 
     return OpusData(
