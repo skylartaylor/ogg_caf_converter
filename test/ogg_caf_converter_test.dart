@@ -178,9 +178,11 @@ void main() {
       final String? afconvertPath = await _findExecutable('afconvert');
       if (afconvertPath == null) {
         markTestSkipped('afconvert is not available');
+        return;
       }
-      if (!await _afconvertSupportsOpus(afconvertPath!)) {
+      if (!await _afconvertSupportsOpus(afconvertPath)) {
         markTestSkipped('afconvert does not support Opus on this machine');
+        return;
       }
 
       final Directory tempDir =
@@ -472,6 +474,7 @@ void main() {
       final String? ffmpegPath = await _findExecutable('ffmpeg');
       if (ffmpegPath == null) {
         markTestSkipped('ffmpeg is not available');
+        return;
       }
 
       final Directory tempDir =
@@ -481,7 +484,7 @@ void main() {
 
       try {
         final ProcessResult ffmpegRemux =
-            await Process.run(ffmpegPath!, <String>[
+            await Process.run(ffmpegPath, <String>[
           '-v',
           'error',
           '-i',
